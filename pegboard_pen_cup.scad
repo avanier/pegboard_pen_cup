@@ -21,7 +21,7 @@ hole_dist = 26;
 box_height = hole_dist * 4;
 box_depth  = hole_dist * 1.5;
 box_floor_height = nozzle_size * 6;
-box_wall_thickness = nozzle_size * 6;
+box_wall_thickness = nozzle_size * 1;
 box_width  = (hole_dist * 2) + pegboard_hole_diameter - 0.5;
 
 // Let's get started!
@@ -95,6 +95,52 @@ module box() {
           }
         }
       }
+    }
+    // Brace the box if it's getting too thin
+    if (box_wall_thickness <= 2 * nozzle_size) {
+      move([box_wall_thickness, box_depth / 2, (box_height - box_floor_height) / 2]) {
+        sparse_strut(
+          h = box_height - box_floor_height,
+          l = box_depth - pegboard_hole_diameter,
+          thick = box_wall_thickness,
+          strut = 2,
+          maxang=45
+        );
+      };
+
+      move([box_width - box_wall_thickness, box_depth / 2, (box_height - box_floor_height) / 2]) {
+        sparse_strut(
+          h = box_height - box_floor_height,
+          l = box_depth - pegboard_hole_diameter,
+          thick = box_wall_thickness,
+          strut = 2,
+          maxang=45
+        );
+      };
+
+      move([box_width / 2, box_depth - box_wall_thickness, (box_height - box_floor_height) / 2]) {
+        rotate([0,0,90]) {
+          sparse_strut(
+            h = box_height - box_floor_height,
+            l = box_width - pegboard_hole_diameter,
+            thick = box_wall_thickness,
+            strut = 2,
+            maxang=45
+          );
+        };
+      };
+
+      move([box_width / 2, box_wall_thickness, (box_height - box_floor_height) / 2]) {
+        rotate([0,0,90]) {
+          sparse_strut(
+            h = box_height - box_floor_height,
+            l = box_width - pegboard_hole_diameter,
+            thick = box_wall_thickness,
+            strut = 2,
+            maxang=45
+          );
+        };
+      };
     }
   }
 };
