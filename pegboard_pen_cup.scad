@@ -30,32 +30,50 @@ module hook() {
   forward_offset = pegboard_hole_diameter;
   dia = pegboard_hole_diameter - 0.5;
   section_height = pegboard_hole_diameter * 2;
+  pegboard_thickness = dia * (2 / 3);
 
-  move([dia / 2, dia, dia]) {
-      rotate([0, 90, 0]) {
-        rotate_extrude(angle = 90) translate([dia / 2, 0, 0]) circle(r= dia / 2);
-      }
-
+  // This is the upper part of the hook
+  move([dia / 2, dia + pegboard_thickness, dia]) {
+      // This is the top straight part
       move([0, dia / 2, 0]) {
         linear_extrude(height = section_height) {
           circle(r= dia / 2);
+      };
+
+      // This is the upper elbow
+      move([0, dia / -2, 0]) {
+        rotate([0, 90, 0]) {
+          rotate_extrude(angle = 90) translate([dia / 2, 0, 0]) circle(r= dia / 2);
+        };
+      };
+
+      // This is the horizontal exeension going through the pegboard
+      // Something like the middle part of the S <-
+      if (pegboard_thickness > 0) {
+        move([0, dia / -2, dia / -2]) {
+          rotate([90, 0, 0]) {
+            linear_extrude(pegboard_thickness) {
+              circle(r = dia / 2);
+            }
+          }
+        }
       }
     }
-  }
+  };
+
+  // This is the top half of the lower elbow, right along the ridge of the box
   move([dia / 2, dia, 0]) {
     rotate(180, [1,0,0]) {
       rotate(90, [0,1,0]) {
         rotate_extrude(angle = 90) move([dia / 2, 0]) circle(r= dia / 2);
-      }
-    }
-  }
-  move([dia / 2, dia, 0]) {
-    rotate(270, [1,0,0]) {
-      rotate(90, [0,1,0]) {
-        rotate_extrude(angle = 90) move([dia / 2, 0]) circle(r= dia / 2);
-      }
-    }
-  }
+      };
+    };
+  };
+
+  // This is the lower straight section that merges in the box 
+  move([dia / 2, dia / 2, section_height * -0.5]) {
+    cylinder(h = section_height, d1 = nozzle_size, d2 = dia, center = true);
+  };
 };
 
 module box() {
