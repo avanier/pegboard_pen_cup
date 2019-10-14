@@ -12,7 +12,7 @@ $fs = nozzle_size;
 
 /// The actual pegboard which this is designed for has
 /// 7mm holes, but we'll use the standard size of 3/16 in
-pegboard_hole_diameter = 4.7625; 
+pegboard_hole_diameter = 4.7625;
 
 /// This is the distance from the center of a hole to another
 hole_dist = 26;
