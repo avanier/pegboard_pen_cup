@@ -3,8 +3,13 @@ include <BOSL/constants.scad>;
 use <BOSL/transforms.scad>;
 use <BOSL/shapes.scad>;
 
-// Globals
+// Constants
 
+/// This is the distance from the center of a hole to another
+hole_dist = 26;
+
+/// Self explanatory
+/// Useful for tolerances and material strength guesstimations
 nozzle_size = 0.4;
 
 /// We set the smallest tesselation size to nozzle size
@@ -14,17 +19,33 @@ $fs = nozzle_size;
 /// 7mm holes, but we'll use the standard size of 3/16 in
 pegboard_hole_diameter = 4.7625;
 
-/// This is the distance from the center of a hole to another
-hole_dist = 26;
+// Globals
 
-/// This is the height of the container
-box_height = hole_dist * 4;
-box_depth  = hole_dist * 1.5;
-box_floor_height = nozzle_size * 6;
-box_wall_thickness = nozzle_size * 1;
-box_width  = (hole_dist * 2) + pegboard_hole_diameter - 0.5;
+/// This is the height of the container.
+/// This is designed to extend from "hole zero" to just above
+/// the hole of the number you're entering.
+height_in_holes = 1;
+
+/// Control the width of the box in number or holes wide.
+/// That's inclusive of hole number zero.
+width_in_holes = 2;
+
+/// The depth of the box, or how far it extends away from the pegboard
+/// Expressed
+depth_in_holes = 1;
+
+/// A keen reader will notice that this makes it so that
+/// "vertical hole units" and "horizontal hole units" aren't
+/// the same size. That's right. Deal with it.
+
+/// Other things to fiddle with
+box_floor_height = nozzle_size * 4;
+box_wall_thickness = nozzle_size * 2;
 
 // Let's get started!
+box_width = (hole_dist * (width_in_holes - 1)) + pegboard_hole_diameter - 0.5;
+box_height = (hole_dist * height_in_holes) - pegboard_hole_diameter;
+box_depth  = hole_dist * depth_in_holes;
 
 module hook() {
   forward_offset = pegboard_hole_diameter;
@@ -72,7 +93,20 @@ module hook() {
 
   // This is the lower straight section that merges in the box 
   move([dia / 2, dia / 2, section_height * -0.5]) {
-    cylinder(h = section_height, d1 = nozzle_size, d2 = dia, center = true);
+    intersection() {
+      cylinder(h = section_height, r = dia / 2, center = true);
+      move([dia / -2, dia / -2, section_height / 2]) {
+        rotate([0, 90, 0]) {
+          linear_extrude(dia) {
+            polygon([
+              [0 ,0],
+              [section_height ,dia],
+              [0 ,dia]
+            ]);
+          };
+        };
+      };
+    };
   };
 };
 
@@ -97,7 +131,7 @@ module box() {
       }
     }
     // Brace the box if it's getting too thin
-    if (box_wall_thickness <= 2 * nozzle_size) {
+    if (box_wall_thickness <= nozzle_size * 2) {
       move([box_wall_thickness, box_depth / 2, (box_height - box_floor_height) / 2]) {
         sparse_strut(
           h = box_height - box_floor_height,
@@ -145,10 +179,13 @@ module box() {
   }
 };
 
+// Place all our hooks
 move([0, 0, box_height]) {
-  hook();
-  move([hole_dist, 0, 0]) hook();
-  move([hole_dist * 2, 0, 0]) hook();
+  for (a = [0: width_in_holes - 1]) {
+    move([a * hole_dist, 0, 0]) {
+      hook();
+    }
+  };
 }
 
 move([0, (box_depth * -1) + (pegboard_hole_diameter - 0.5), 0]) {
